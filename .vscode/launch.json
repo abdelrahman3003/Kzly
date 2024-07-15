@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Dev",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "program": "lib/main_dev.dart", // Change this to your flavor-specific entry point
+            "args": ["--flavor", "dev"], // Add flavor-specific arguments if needed
+        },
+        {
+            "name": "Prod",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "program": "lib/main_prod.dart", // Change this to your flavor-specific entry point
+            "args": ["--flavor", "prod"], // Add flavor-specific arguments if needed
+        },
+        {
+            "name": "Production Profile",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile",
+            "program": "lib/main_prod.dart", // Change this to your flavor-specific entry point
+            "args": ["--flavor", "prod"], // Add flavor-specific arguments if needed
+        }
+    ]
+}

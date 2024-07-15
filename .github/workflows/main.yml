@@ -1,0 +1,88 @@
+name: Build and Release Flutter APK
+
+on:
+  push:
+    tags:
+      - 'main-build'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Java environment
+        uses: actions/setup-java@v2
+        with:
+          distribution: "adopt"
+          java-version: "12.x"
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v1
+        with:
+          channel: "stable" # or the Flutter version of your choice
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK to Release
+        uses: actions/upload-artifact@v2
+        with:
+          name: app-release.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Get version from pubspec.yaml
+        id: get_version
+        uses: NiklasLehnfeld/flutter-version-number-action@main
+        with:
+          file-path: "pubspec.yaml" # Replace with the actual path to your pubspec.yaml
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_version.outputs.version-number }}
+          release_name: "Release ${{ steps.get_version.outputs.version-number }}"
+          body: "Release of version ${{ steps.get_version.outputs.version-number }}"
+          draft: false
+          prerelease: true
+      
+      - name: Download APK from build job
+        uses: actions/download-artifact@v2
+        with:
+          name: app-release.apk
+        
+      - name: Upload APK to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./app-release.apk
+          asset_name: app-release.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Delete main-build tag
+        run: |
+          if git rev-parse "main-build" >/dev/null 2>&1; then
+            git tag -d main-build
+            git push --delete origin main-build
+          fi
+        shell: bash

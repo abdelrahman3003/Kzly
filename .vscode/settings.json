@@ -1,0 +1,9 @@
+{
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "dart.lineLength": 85,
+    "[dart]": {
+        "editor.rulers": [
+            85
+        ],
+    }
+}
